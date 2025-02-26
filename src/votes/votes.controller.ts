@@ -19,6 +19,10 @@ import {
   ApiQuery,
   ApiBody,
 } from '@nestjs/swagger';
+import {
+  VoteResponse,
+  PaginatedTopRestaurantResponse,
+} from './models/vote-response.model';
 
 @ApiTags('votes')
 @Controller('votes')
@@ -30,7 +34,11 @@ export class VotesController {
   @ApiBearerAuth('token')
   @ApiOperation({ summary: 'Create a vote for a food item' })
   @ApiBody({ type: CreateVoteDto })
-  @ApiResponse({ status: 201, description: 'Vote successfully created' })
+  @ApiResponse({
+    status: 201,
+    description: 'Vote successfully created',
+    type: VoteResponse,
+  })
   @ApiResponse({ status: 400, description: 'Bad request - validation error' })
   @ApiResponse({
     status: 404,
@@ -38,10 +46,10 @@ export class VotesController {
   })
   @ApiResponse({
     status: 409,
-    description: 'Already voted for this restaurant today',
+    description: 'Already voted for this food today',
   })
   create(@Request() req, @Body() createVoteDto: CreateVoteDto) {
-    return this.votesService.create(req.user.sub, createVoteDto);
+    return this.votesService.create(req.user.userId, createVoteDto);
   }
 
   @Get('top-restaurants')
@@ -52,6 +60,7 @@ export class VotesController {
   @ApiResponse({
     status: 200,
     description: 'List of top restaurants with vote counts',
+    type: PaginatedTopRestaurantResponse,
   })
   getTopRestaurants(@Query() paginationQuery: PaginationQueryDto) {
     return this.votesService.getTopRestaurants(paginationQuery);

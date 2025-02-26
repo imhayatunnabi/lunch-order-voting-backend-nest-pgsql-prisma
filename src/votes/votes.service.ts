@@ -12,7 +12,7 @@ export class VotesService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, createVoteDto: CreateVoteDto) {
-    const food = await this.prisma.food.findFirst({
+    const food = await this.prisma.food.findUnique({
       where: {
         id: createVoteDto.foodId,
         restaurantId: createVoteDto.restaurantId,
@@ -22,10 +22,11 @@ export class VotesService {
     if (!food) {
       throw new NotFoundException('Food not found in this restaurant');
     }
+
     const existingVote = await this.prisma.vote.findFirst({
       where: {
-        userId,
-        restaurantId: createVoteDto.restaurantId,
+        userId: userId,
+        foodId: createVoteDto.foodId,
         createdAt: {
           gte: new Date(new Date().setHours(0, 0, 0, 0)),
         },
@@ -33,9 +34,7 @@ export class VotesService {
     });
 
     if (existingVote) {
-      throw new ConflictException(
-        'You have already voted for this restaurant today',
-      );
+      throw new ConflictException('You have already voted for this food today');
     }
 
     return this.prisma.vote.create({
@@ -44,87 +43,70 @@ export class VotesService {
         foodId: createVoteDto.foodId,
         restaurantId: createVoteDto.restaurantId,
       },
-      include: {
-        user: true,
-        food: true,
-        restaurant: true,
-      },
     });
   }
 
   async getTopRestaurants(paginationQuery: PaginationQueryDto) {
-    const page = Number(paginationQuery.page || 1);
-    const limit = Number(paginationQuery.limit || 10);
-    const { search } = paginationQuery;
+    const { page = 1, limit = 10, search } = paginationQuery;
     const skip = (page - 1) * limit;
-    let where = {};
-    if (search) {
-      where = {
-        name: { contains: search, mode: 'insensitive' },
-      };
-    }
-    const total = await this.prisma.restaurant.count({ where });
+
     const restaurants = await this.prisma.restaurant.findMany({
-      where,
-      skip,
-      take: limit,
-      include: {
-        FoodItem: {
-          include: {
-            Vote: true,
-          },
-        },
-        Vote: {
-          include: {
-            user: true,
-            food: true,
-          },
-        },
+      where: search
+        ? {
+            name: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          }
+        : undefined,
+      select: {
+        id: true,
+        name: true,
+        address: true,
         _count: {
           select: {
-            Vote: true,
+            votes: {
+              where: {
+                createdAt: {
+                  gte: new Date(new Date().setHours(0, 0, 0, 0)),
+                },
+              },
+            },
           },
         },
       },
       orderBy: {
-        Vote: {
+        votes: {
           _count: 'desc',
         },
       },
+      skip,
+      take: limit,
     });
-    const formattedRestaurants = restaurants.map((restaurant) => ({
-      ...restaurant,
-      totalVotes: restaurant._count.Vote,
-      todayVotes: restaurant.Vote.filter(
-        (vote) => vote.createdAt.toDateString() === new Date().toDateString(),
-      ).length,
-    }));
 
-    const lastPage = Math.ceil(total / limit);
-    const baseUrl = 'votes/top-restaurants';
+    const total = await this.prisma.restaurant.count({
+      where: search
+        ? {
+            name: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          }
+        : undefined,
+    });
 
     return {
-      data: formattedRestaurants,
+      data: restaurants.map((restaurant) => ({
+        id: restaurant.id,
+        name: restaurant.name,
+        address: restaurant.address,
+        voteCount: restaurant._count.votes,
+      })),
       meta: {
-        total,
-        per_page: limit,
-        current_page: page,
-        last_page: lastPage,
-        from: skip + 1,
-        to: Math.min(skip + limit, total),
-      },
-      links: {
-        first: `${baseUrl}?page=1&limit=${limit}${search ? `&search=${search}` : ''}`,
-        last: `${baseUrl}?page=${lastPage}&limit=${limit}${search ? `&search=${search}` : ''}`,
-        prev:
-          page > 1
-            ? `${baseUrl}?page=${page - 1}&limit=${limit}${search ? `&search=${search}` : ''}`
-            : null,
-        next:
-          page < lastPage
-            ? `${baseUrl}?page=${page + 1}&limit=${limit}${search ? `&search=${search}` : ''}`
-            : null,
-        current: `${baseUrl}?page=${page}&limit=${limit}${search ? `&search=${search}` : ''}`,
+        currentPage: page,
+        itemsPerPage: limit,
+        totalItems: total,
+        totalPages: Math.ceil(total / limit),
       },
     };
   }
