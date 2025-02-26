@@ -8,6 +8,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
+import { PaginationQueryDto } from './dto/pagination-query.dto';
 
 @Injectable()
 export class UsersService {
@@ -38,8 +39,22 @@ export class UsersService {
     }
   }
 
-  async findAll() {
+  async findAll(paginationQuery: PaginationQueryDto) {
+    const page = Number(paginationQuery.page || 1);
+    const limit = Number(paginationQuery.limit || 10);
+    const { search } = paginationQuery;
+    const skip = (page - 1) * limit;
+    let where = {};
+    if (search) {
+      where = {
+        email: { contains: search, mode: 'insensitive' },
+      };
+    }
+    const total = await this.prisma.user.count({ where });
     const users = await this.prisma.user.findMany({
+      where,
+      skip,
+      take: limit,
       include: {
         Vote: {
           include: {
@@ -48,12 +63,40 @@ export class UsersService {
           },
         },
       },
+      orderBy: { email: 'asc' },
     });
-
-    return users.map((user) => {
+    const sanitizedUsers = users.map((user) => {
       const { ...result } = user;
       return result;
     });
+    const lastPage = Math.ceil(total / limit);
+    const baseUrl = 'users';
+    const links = {
+      first: `${baseUrl}?page=1&limit=${limit}${search ? `&search=${search}` : ''}`,
+      last: `${baseUrl}?page=${lastPage}&limit=${limit}${search ? `&search=${search}` : ''}`,
+      prev:
+        page > 1
+          ? `${baseUrl}?page=${page - 1}&limit=${limit}${search ? `&search=${search}` : ''}`
+          : null,
+      next:
+        page < lastPage
+          ? `${baseUrl}?page=${page + 1}&limit=${limit}${search ? `&search=${search}` : ''}`
+          : null,
+      current: `${baseUrl}?page=${page}&limit=${limit}${search ? `&search=${search}` : ''}`,
+    };
+
+    return {
+      data: sanitizedUsers,
+      meta: {
+        total,
+        per_page: limit,
+        current_page: page,
+        last_page: lastPage,
+        from: skip + 1,
+        to: Math.min(skip + limit, total),
+      },
+      links,
+    };
   }
 
   async findOne(id: string) {
