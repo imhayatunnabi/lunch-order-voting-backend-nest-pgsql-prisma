@@ -8,12 +8,16 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UsersService } from '../users/users.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private usersService: UsersService,
+    private configService: ConfigService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -57,10 +61,17 @@ export class AuthService {
     }
 
     const payload = { sub: user.id, email: user.email };
-    const accessToken = await this.jwtService.signAsync(payload);
+    console.log('Creating JWT with payload:', payload);
+
+    const token = this.jwtService.sign(payload);
+    console.log('Token generated:', token.substring(0, 20) + '...');
 
     return {
-      access_token: accessToken,
+      access_token: token,
+      user: {
+        id: user.id,
+        email: user.email,
+      },
     };
   }
 }
