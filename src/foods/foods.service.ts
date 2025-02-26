@@ -50,8 +50,6 @@ export class FoodsService {
     const limit = Number(paginationQuery.limit || 10);
     const { search } = paginationQuery;
     const skip = (page - 1) * limit;
-
-    // Build the where condition for search
     let where = {};
     if (search) {
       where = {
@@ -61,11 +59,7 @@ export class FoodsService {
         ],
       };
     }
-
-    // Get total count for pagination
     const total = await this.prisma.food.count({ where });
-    
-    // Get the foods with pagination
     const foods = await this.prisma.food.findMany({
       where,
       skip,
@@ -81,11 +75,7 @@ export class FoodsService {
       },
       orderBy: { name: 'asc' },
     });
-
-    // Calculate pagination metadata
     const lastPage = Math.ceil(total / limit);
-    
-    // Build pagination links
     const baseUrl = 'foods';
     const links = {
       first: `${baseUrl}?page=1&limit=${limit}${search ? `&search=${search}` : ''}`,
