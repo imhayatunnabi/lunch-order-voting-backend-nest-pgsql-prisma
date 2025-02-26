@@ -10,7 +10,7 @@ import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class RestaurantsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async create(createRestaurantDto: CreateRestaurantDto) {
     try {
