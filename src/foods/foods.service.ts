@@ -55,7 +55,7 @@ export class FoodsService {
       where = {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
-          { restaurant: { name: { contains: search, mode: 'insensitive' } } }
+          { restaurant: { name: { contains: search, mode: 'insensitive' } } },
         ],
       };
     }
@@ -80,8 +80,14 @@ export class FoodsService {
     const links = {
       first: `${baseUrl}?page=1&limit=${limit}${search ? `&search=${search}` : ''}`,
       last: `${baseUrl}?page=${lastPage}&limit=${limit}${search ? `&search=${search}` : ''}`,
-      prev: page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}${search ? `&search=${search}` : ''}` : null,
-      next: page < lastPage ? `${baseUrl}?page=${page + 1}&limit=${limit}${search ? `&search=${search}` : ''}` : null,
+      prev:
+        page > 1
+          ? `${baseUrl}?page=${page - 1}&limit=${limit}${search ? `&search=${search}` : ''}`
+          : null,
+      next:
+        page < lastPage
+          ? `${baseUrl}?page=${page + 1}&limit=${limit}${search ? `&search=${search}` : ''}`
+          : null,
       current: `${baseUrl}?page=${page}&limit=${limit}${search ? `&search=${search}` : ''}`,
     };
 
