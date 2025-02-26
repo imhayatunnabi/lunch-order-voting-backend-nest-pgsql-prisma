@@ -27,7 +27,7 @@ export class VotesController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  @ApiBearerAuth('JWT-auth')
+  @ApiBearerAuth('token')
   @ApiOperation({ summary: 'Create a vote for a food item' })
   @ApiBody({ type: CreateVoteDto })
   @ApiResponse({ status: 201, description: 'Vote successfully created' })

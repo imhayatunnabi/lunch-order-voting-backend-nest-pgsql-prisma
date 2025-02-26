@@ -25,7 +25,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('users')
-@ApiBearerAuth('JWT-auth')
+@ApiBearerAuth('token')
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
@@ -81,7 +81,7 @@ export class UsersController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get current user profile' })
-  @ApiBearerAuth('JWT-auth')
+  @ApiBearerAuth('token')
   @ApiResponse({ status: 200, description: 'Current user profile' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   getMe(@Request() req) {

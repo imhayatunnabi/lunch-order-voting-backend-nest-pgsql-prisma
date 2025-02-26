@@ -24,7 +24,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('restaurants')
-@ApiBearerAuth('JWT-auth')
+@ApiBearerAuth('token')
 @Controller('restaurants')
 export class RestaurantsController {
   constructor(private readonly restaurantsService: RestaurantsService) {}

@@ -75,7 +75,7 @@ export class AuthController {
   @Get('test-auth')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Test authentication' })
-  @ApiBearerAuth('JWT-auth')
+  @ApiBearerAuth('token')
   @ApiResponse({ status: 200, description: 'Authentication successful' })
   testAuth(@Request() req) {
     return { message: 'Authentication successful', user: req.user };
@@ -84,7 +84,7 @@ export class AuthController {
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get authenticated user profile' })
-  @ApiBearerAuth('JWT-auth')
+  @ApiBearerAuth('token')
   @ApiResponse({ status: 200, description: 'User profile' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   getProfile(@Request() req) {
