@@ -4,7 +4,6 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function cleanDatabase() {
-  // Delete in correct order due to foreign key constraints
   await prisma.vote.deleteMany({});
   await prisma.food.deleteMany({});
   await prisma.restaurant.deleteMany({});
@@ -15,9 +14,7 @@ async function main() {
   console.log('Starting database cleanup...');
   await cleanDatabase();
   console.log('Database cleanup completed');
-
-  // Seed Users first (keeping existing code)
-  const users = [
+  const userSeedData = [
     {
       email: 'imhayatunnabi@gmail.com',
       password: await bcrypt.hash('password123', 10),
@@ -32,13 +29,13 @@ async function main() {
     },
   ];
 
-  for (const user of users) {
-    await prisma.user.create({
-      data: user,
+  const createdUsers = [];
+  for (const userData of userSeedData) {
+    const user = await prisma.user.create({
+      data: userData,
     });
+    createdUsers.push(user);
   }
-
-  // Seed Restaurants
   const restaurants = [
     { name: 'Star Kabab', address: '23/B Gulshan Avenue, Dhaka' },
     { name: "Sultan's Dine", address: '12 Banani Road, Dhaka' },
@@ -75,8 +72,6 @@ async function main() {
       console.error(`Error creating restaurant ${restaurant.name}:`, error);
     }
   }
-
-  // Food categories with items
   const foodCategories = {
     Appetizers: [
       { name: 'Spring Rolls', priceRange: [150, 250] },
@@ -107,8 +102,6 @@ async function main() {
   console.log('Seeding foods...');
   for (const restaurant of createdRestaurants) {
     console.log(`Adding foods to restaurant: ${restaurant.name}`);
-
-    // Add items from each category
     for (const [, items] of Object.entries(foodCategories)) {
       for (const item of items) {
         try {
@@ -130,6 +123,38 @@ async function main() {
             `Error creating food ${item.name} in ${restaurant.name}:`,
             error,
           );
+        }
+      }
+    }
+  }
+
+  console.log('Seeding votes...');
+  const foods = await prisma.food.findMany({
+    include: { restaurant: true },
+  });
+
+  for (let daysAgo = 0; daysAgo < 5; daysAgo++) {
+    const voteDate = new Date();
+    voteDate.setDate(voteDate.getDate() - daysAgo);
+    voteDate.setHours(0, 0, 0, 0);
+
+    for (const user of createdUsers) {
+      if (Math.random() < 0.7) {
+        const randomFood = foods[Math.floor(Math.random() * foods.length)];
+        try {
+          await prisma.vote.create({
+            data: {
+              userId: user.id,
+              foodId: randomFood.id,
+              restaurantId: randomFood.restaurant.id,
+              createdAt: voteDate,
+            },
+          });
+          console.log(
+            `Created vote by ${user.email} for ${randomFood.name} at ${randomFood.restaurant.name}`,
+          );
+        } catch (error) {
+          console.error(`Error creating vote for ${user.email}:`, error);
         }
       }
     }

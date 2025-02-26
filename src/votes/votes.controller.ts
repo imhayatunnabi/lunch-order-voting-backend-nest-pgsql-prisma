@@ -3,40 +3,27 @@ import {
   Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
+  Query,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { VotesService } from './votes.service';
 import { CreateVoteDto } from './dto/create-vote.dto';
-import { UpdateVoteDto } from './dto/update-vote.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PaginationQueryDto } from './dto/pagination-query.dto';
 
 @Controller('votes')
 export class VotesController {
   constructor(private readonly votesService: VotesService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createVoteDto: CreateVoteDto) {
-    return this.votesService.create(createVoteDto);
+  create(@Request() req, @Body() createVoteDto: CreateVoteDto) {
+    return this.votesService.create(req.user.sub, createVoteDto);
   }
 
-  @Get()
-  findAll() {
-    return this.votesService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.votesService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVoteDto: UpdateVoteDto) {
-    return this.votesService.update(+id, updateVoteDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.votesService.remove(+id);
+  @Get('top-restaurants')
+  getTopRestaurants(@Query() paginationQuery: PaginationQueryDto) {
+    return this.votesService.getTopRestaurants(paginationQuery);
   }
 }
