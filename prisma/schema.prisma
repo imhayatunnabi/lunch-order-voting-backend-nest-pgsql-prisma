@@ -39,6 +39,8 @@ model Food {
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
   Vote         Vote[]
+
+  @@unique([name, restaurantId]) // Make food names unique per restaurant
 }
 
 model Vote {

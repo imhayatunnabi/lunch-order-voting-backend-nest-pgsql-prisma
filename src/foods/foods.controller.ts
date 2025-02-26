@@ -27,16 +27,16 @@ export class FoodsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.foodsService.findOne(+id);
+    return this.foodsService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateFoodDto: UpdateFoodDto) {
-    return this.foodsService.update(+id, updateFoodDto);
+    return this.foodsService.update(id, updateFoodDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.foodsService.remove(+id);
+    return this.foodsService.remove(id);
   }
 }

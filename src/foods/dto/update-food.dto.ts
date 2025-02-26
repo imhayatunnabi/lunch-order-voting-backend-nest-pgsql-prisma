@@ -1,4 +1,14 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateFoodDto } from './create-food.dto';
+import { IsOptional, IsString, IsNumber, Min } from 'class-validator';
+import { Transform } from 'class-transformer';
 
-export class UpdateFoodDto extends PartialType(CreateFoodDto) {}
+export class UpdateFoodDto {
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => value?.trim())
+  name?: string;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  price?: number;
+}
