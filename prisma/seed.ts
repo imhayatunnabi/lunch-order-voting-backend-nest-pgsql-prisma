@@ -63,14 +63,75 @@ async function main() {
   ];
 
   console.log('Seeding restaurants...');
+  const createdRestaurants = [];
   for (const restaurant of restaurants) {
     try {
-      await prisma.restaurant.create({
+      const createdRestaurant = await prisma.restaurant.create({
         data: restaurant,
       });
+      createdRestaurants.push(createdRestaurant);
       console.log(`Created restaurant: ${restaurant.name}`);
     } catch (error) {
       console.error(`Error creating restaurant ${restaurant.name}:`, error);
+    }
+  }
+
+  // Food categories with items
+  const foodCategories = {
+    Appetizers: [
+      { name: 'Spring Rolls', priceRange: [150, 250] },
+      { name: 'Chicken Wings', priceRange: [280, 380] },
+      { name: 'French Fries', priceRange: [120, 180] },
+      { name: 'Onion Rings', priceRange: [140, 200] },
+    ],
+    MainCourse: [
+      { name: 'Beef Burger', priceRange: [350, 450] },
+      { name: 'Chicken Biryani', priceRange: [280, 380] },
+      { name: 'Grilled Fish', priceRange: [450, 550] },
+      { name: 'Mixed Fried Rice', priceRange: [250, 350] },
+    ],
+    Desserts: [
+      { name: 'Chocolate Cake', priceRange: [180, 280] },
+      { name: 'Ice Cream', priceRange: [150, 250] },
+      { name: 'Fruit Pudding', priceRange: [160, 260] },
+      { name: 'Brownie', priceRange: [200, 300] },
+    ],
+    Beverages: [
+      { name: 'Fresh Lime Soda', priceRange: [80, 120] },
+      { name: 'Mango Smoothie', priceRange: [150, 200] },
+      { name: 'Cold Coffee', priceRange: [160, 220] },
+      { name: 'Mint Lemonade', priceRange: [100, 150] },
+    ],
+  };
+
+  console.log('Seeding foods...');
+  for (const restaurant of createdRestaurants) {
+    console.log(`Adding foods to restaurant: ${restaurant.name}`);
+
+    // Add items from each category
+    for (const [, items] of Object.entries(foodCategories)) {
+      for (const item of items) {
+        try {
+          const price = Math.floor(
+            Math.random() * (item.priceRange[1] - item.priceRange[0]) +
+              item.priceRange[0],
+          );
+
+          await prisma.food.create({
+            data: {
+              name: `${item.name}`,
+              price: price,
+              restaurantId: restaurant.id,
+            },
+          });
+          console.log(`Created food: ${item.name} in ${restaurant.name}`);
+        } catch (error) {
+          console.error(
+            `Error creating food ${item.name} in ${restaurant.name}:`,
+            error,
+          );
+        }
+      }
     }
   }
 
