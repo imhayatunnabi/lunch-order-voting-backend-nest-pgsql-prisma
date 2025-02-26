@@ -5,7 +5,7 @@ import { Transform } from 'class-transformer';
 export class RegisterDto {
   @ApiProperty({
     example: 'user@example.com',
-    description: 'User email address',
+    description: 'Email address of the user',
   })
   @IsEmail()
   @IsNotEmpty()
@@ -13,8 +13,9 @@ export class RegisterDto {
   email: string;
 
   @ApiProperty({
-    example: 'password123',
-    description: 'User password (min 6 characters)',
+    example: 'Password123!',
+    description: 'Password (minimum 6 characters)',
+    minLength: 6,
   })
   @IsString()
   @IsNotEmpty()
