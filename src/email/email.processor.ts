@@ -77,62 +77,62 @@ export class EmailProcessor {
     }
   }
 
-  @Process('top-restaurants-periodic')
-  async handlePeriodicTopRestaurants() {
-    this.logger.log('Starting periodic top restaurants email job');
+  // @Process('top-restaurants-periodic')
+  // async handlePeriodicTopRestaurants() {
+  //   this.logger.log('Starting periodic top restaurants email job');
 
-    try {
-      const restaurants = await this.prisma.restaurant.findMany({
-        take: 5,
-        select: {
-          id: true,
-          name: true,
-          _count: {
-            select: {
-              Vote: {
-                where: {
-                  createdAt: {
-                    gte: new Date(new Date().setHours(0, 0, 0, 0)),
-                  },
-                },
-              },
-            },
-          },
-        },
-        orderBy: {
-          Vote: {
-            _count: 'desc',
-          },
-        },
-      });
+  //   try {
+  //     const restaurants = await this.prisma.restaurant.findMany({
+  //       take: 5,
+  //       select: {
+  //         id: true,
+  //         name: true,
+  //         _count: {
+  //           select: {
+  //             Vote: {
+  //               where: {
+  //                 createdAt: {
+  //                   gte: new Date(new Date().setHours(0, 0, 0, 0)),
+  //                 },
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //       orderBy: {
+  //         Vote: {
+  //           _count: 'desc',
+  //         },
+  //       },
+  //     });
 
-      const formattedRestaurants = restaurants.map((r) => ({
-        name: r.name,
-        voteCount: r._count.Vote,
-      }));
-      const users = await this.prisma.user.findMany();
-      for (const user of users) {
-        await this.emailQueue.add(
-          'top-restaurants',
-          {
-            email: user.email,
-            restaurants: formattedRestaurants,
-          },
-          {
-            delay: Math.random() * 5000 + 5000,
-            attempts: 3,
-            backoff: {
-              type: 'exponential',
-              delay: 1000,
-            },
-          },
-        );
-      }
+  //     const formattedRestaurants = restaurants.map((r) => ({
+  //       name: r.name,
+  //       voteCount: r._count.Vote,
+  //     }));
+  //     const users = await this.prisma.user.findMany();
+  //     for (const user of users) {
+  //       await this.emailQueue.add(
+  //         'top-restaurants',
+  //         {
+  //           email: user.email,
+  //           restaurants: formattedRestaurants,
+  //         },
+  //         {
+  //           delay: Math.random() * 5000 + 5000,
+  //           attempts: 3,
+  //           backoff: {
+  //             type: 'exponential',
+  //             delay: 1000,
+  //           },
+  //         },
+  //       );
+  //     }
 
-      this.logger.log(`Queued emails for ${users.length} users`);
-    } catch (error) {
-      this.logger.error('Failed to process periodic top restaurants:', error);
-      throw error;
-    }
-  }
+  //     this.logger.log(`Queued emails for ${users.length} users`);
+  //   } catch (error) {
+  //     this.logger.error('Failed to process periodic top restaurants:', error);
+  //     throw error;
+  //   }
+  // }
 }
