@@ -130,7 +130,6 @@ Note: The local development setup uses a separate `.env.local` file to connect t
 ### Database Migrations
 
 1. Local development:
-```
 ```bash
 # Create a new migration
 npx prisma migrate dev --name migration_name
@@ -141,11 +140,26 @@ npx prisma migrate deploy
 
 2. Docker development:
 ```bash
-# Migrations are automatically run on 
-container start
+# Migrations are automatically run on container start
 # To run manually:
-docker exec -it lunch-voting-api npm run 
-prisma:migrate:dev
+docker exec -it lunch-voting-api npm run prisma:migrate:dev
+```
+
+### Seeding the Database
+
+1. Local Development (outside Docker):
+```bash
+# Make sure Docker containers are running
+npm run docker:dev
+
+# In a separate terminal, run the seed script
+npm run seed
+```
+
+2. Inside Docker container:
+```bash
+# Run seed directly in the Docker container
+npm run seed:docker
 ```
 
 ## API Documentation
@@ -189,39 +203,31 @@ model Restaurant {
 }
 
 model Food {
-  id           String     @id @default(uuid
-  ())
+  id           String     @id @default(uuid())
   name         String
   price        Decimal
   restaurantId String
-  restaurant   Restaurant @relation(fields: 
-  [restaurantId], references: [id])
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
   votes        Vote[]
 }
 
 model Vote {
-  id           String     @id @default(uuid
-  ())
+  id           String     @id @default(uuid())
   userId       String
   restaurantId String
   foodId       String
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
-  user         User       @relation(fields: 
-  [userId], references: [id])
-  restaurant   Restaurant @relation(fields: 
-  [restaurantId], references: [id])
-  food         Food       @relation(fields: 
-  [foodId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  food         Food       @relation(fields: [foodId], references: [id])
 }
 
 ## Environment Variables
 
 ```env
 # Database
-DATABASE_URL="postgresql://
-postgres:postgres@db:5432/voting-app?
-schema=public"
+DATABASE_URL="postgresql://postgres:postgres@db:5432/voting-app?schema=public"
 
 # Authentication
 JWT_SECRET="your-secret-key"
