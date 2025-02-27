@@ -223,6 +223,8 @@ model Vote {
   food         Food       @relation(fields: [foodId], references: [id])
 }
 
+```
+
 ## Environment Variables
 
 ```env
