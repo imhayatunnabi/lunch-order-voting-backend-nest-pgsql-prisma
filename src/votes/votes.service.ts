@@ -6,10 +6,14 @@ import {
 import { CreateVoteDto } from './dto/create-vote.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class VotesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   async create(userId: string, createVoteDto: CreateVoteDto) {
     const food = await this.prisma.food.findUnique({
@@ -37,13 +41,27 @@ export class VotesService {
       throw new ConflictException('You have already voted for this food today');
     }
 
-    return this.prisma.vote.create({
+    const vote = await this.prisma.vote.create({
       data: {
         userId,
         foodId: createVoteDto.foodId,
         restaurantId: createVoteDto.restaurantId,
       },
+      include: {
+        user: true,
+        food: true,
+        restaurant: true,
+      },
     });
+
+    // Send email confirmation
+    await this.emailService.sendVoteConfirmation(
+      vote.user.email,
+      vote.restaurant.name,
+      vote.food.name,
+    );
+
+    return vote;
   }
 
   async getTopRestaurants(paginationQuery: PaginationQueryDto) {

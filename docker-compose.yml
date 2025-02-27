@@ -44,5 +44,19 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    container_name: lunch-voting-redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 volumes:
-  postgres_data: 
+  postgres_data:
+  redis_data: 

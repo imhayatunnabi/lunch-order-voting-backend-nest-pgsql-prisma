@@ -50,4 +50,4 @@ export class PaginatedTopRestaurantResponse {
     totalItems: number;
     totalPages: number;
   };
-} 
+}
