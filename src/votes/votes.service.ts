@@ -54,12 +54,16 @@ export class VotesService {
       },
     });
 
-    // Send email confirmation
+    // Send vote confirmation email
     await this.emailService.sendVoteConfirmation(
       vote.user.email,
       vote.restaurant.name,
       vote.food.name,
     );
+
+    // Get and send top restaurants
+    const topRestaurants = await this.getTopRestaurants({ limit: 5 });
+    await this.emailService.sendTopRestaurantsToAllUsers(topRestaurants.data);
 
     return vote;
   }
