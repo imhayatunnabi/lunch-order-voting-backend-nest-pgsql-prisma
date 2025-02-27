@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateVoteDto } from './dto/create-vote.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 
 @Injectable()
 export class VotesService {
@@ -65,7 +65,7 @@ export class VotesService {
         address: true,
         _count: {
           select: {
-            votes: {
+            Vote: {
               where: {
                 createdAt: {
                   gte: new Date(new Date().setHours(0, 0, 0, 0)),
@@ -76,7 +76,7 @@ export class VotesService {
         },
       },
       orderBy: {
-        votes: {
+        Vote: {
           _count: 'desc',
         },
       },
@@ -100,7 +100,7 @@ export class VotesService {
         id: restaurant.id,
         name: restaurant.name,
         address: restaurant.address,
-        voteCount: restaurant._count.votes,
+        voteCount: restaurant._count.Vote,
       })),
       meta: {
         currentPage: page,

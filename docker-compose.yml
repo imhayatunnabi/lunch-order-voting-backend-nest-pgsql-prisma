@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: lunch-voting-api
+    build:
+      context: .
+      target: development
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/voting-app?schema=public
+      - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - db
+    command: sh -c "npm run prisma:migrate:dev && npm run start:dev"
+
+  db:
+    container_name: lunch-voting-db
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=voting-app
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data: 
