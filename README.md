@@ -98,13 +98,24 @@ The application will be available at `http://localhost:3000`
 
 Prisma Studio provides a visual interface to view and edit your database data.
 
-1. Local development:
+1. Local Development Setup:
 ```bash
-npx prisma studio
+# First, create a .env.local file with the following content:
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/voting-app?schema=public"
+JWT_SECRET="your-secret-key"
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=voting-app
+
+# Start Docker containers
+npm run docker:dev
+
+# In a separate terminal, run Prisma Studio
+npm run prisma:studio
 ```
 Access Prisma Studio at `http://localhost:5555`
 
-2. Docker development:
+2. Docker Development:
 ```bash
 # Access the API container
 docker exec -it lunch-voting-api sh
@@ -114,9 +125,12 @@ npx prisma studio --host 0.0.0.0
 ```
 Access Prisma Studio at `http://localhost:5555`
 
+Note: The local development setup uses a separate `.env.local` file to connect to the database through `localhost` instead of the Docker network's `db` hostname. This file should be added to your `.gitignore`.
+
 ### Database Migrations
 
 1. Local development:
+```
 ```bash
 # Create a new migration
 npx prisma migrate dev --name migration_name
@@ -127,14 +141,17 @@ npx prisma migrate deploy
 
 2. Docker development:
 ```bash
-# Migrations are automatically run on container start
+# Migrations are automatically run on 
+container start
 # To run manually:
-docker exec -it lunch-voting-api npm run prisma:migrate:dev
+docker exec -it lunch-voting-api npm run 
+prisma:migrate:dev
 ```
 
 ## API Documentation
 
-Swagger documentation is available at `http://localhost:3000/api`
+Swagger documentation is available at 
+`http://localhost:3000/api`
 
 ## Testing
 
@@ -172,32 +189,39 @@ model Restaurant {
 }
 
 model Food {
-  id           String     @id @default(uuid())
+  id           String     @id @default(uuid
+  ())
   name         String
   price        Decimal
   restaurantId String
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurant   Restaurant @relation(fields: 
+  [restaurantId], references: [id])
   votes        Vote[]
 }
 
 model Vote {
-  id           String     @id @default(uuid())
+  id           String     @id @default(uuid
+  ())
   userId       String
   restaurantId String
   foodId       String
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
-  user         User       @relation(fields: [userId], references: [id])
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-  food         Food       @relation(fields: [foodId], references: [id])
+  user         User       @relation(fields: 
+  [userId], references: [id])
+  restaurant   Restaurant @relation(fields: 
+  [restaurantId], references: [id])
+  food         Food       @relation(fields: 
+  [foodId], references: [id])
 }
-```
 
 ## Environment Variables
 
 ```env
 # Database
-DATABASE_URL="postgresql://postgres:postgres@db:5432/voting-app?schema=public"
+DATABASE_URL="postgresql://
+postgres:postgres@db:5432/voting-app?
+schema=public"
 
 # Authentication
 JWT_SECRET="your-secret-key"
@@ -207,18 +231,3 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 POSTGRES_DB=voting-app
 ```
-
-## Common Issues & Solutions
-
-1. **Database Connection Issues**
-   - Check if PostgreSQL is running
-   - Verify DATABASE_URL in .env
-   - For Docker: ensure db service is healthy
-
-2. **Prisma Issues**
-   - Run `npm run prisma:generate` after schema changes
-   - Clear Prisma cache: `rm -rf node_modules/.prisma`
-
-3. **Docker Issues**
-   - Clear Docker cache: `docker system prune`
-   - Rebuild containers: `docker-compose build --no-cache`

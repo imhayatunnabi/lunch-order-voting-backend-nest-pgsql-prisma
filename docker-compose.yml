@@ -16,8 +16,16 @@ services:
       - .:/app
       - /app/node_modules
     depends_on:
-      - db
-    command: sh -c "npm run prisma:migrate:dev && npm run start:dev"
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "
+        while ! nc -z db 5432; do
+          echo 'Waiting for database to be ready...';
+          sleep 2;
+        done;
+        npm run prisma:migrate:dev && 
+        npm run start:dev"
 
   db:
     container_name: lunch-voting-db
@@ -30,6 +38,11 @@ services:
       - POSTGRES_DB=voting-app
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data: 
